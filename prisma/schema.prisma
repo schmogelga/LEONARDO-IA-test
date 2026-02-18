@@ -19,9 +19,16 @@ model generations {
   imageHeight  Int
   imageWidth   Int
   prompt       String      @db.VarChar(1500)
+  status       generation_status?
 }
 
 enum core_models {
   SD
   SDXL
+}
+
+enum generation_status {
+  PENDING
+  FAILED
+  COMPLETE
 }

@@ -1,11 +1,11 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common'
-import { PrismaClient } from '@prisma/client'
+import { generation_status, PrismaClient } from '@prisma/client'
 import axios from 'axios'
 
 @Injectable()
 export class AiService implements OnModuleDestroy {
   private prisma: PrismaClient
-  private readonly mockAiUrl = 'http://mock-ai:3001'
+  private readonly mockAiUrl = 'http://localhost:3001'
 
   constructor() {
     this.prisma = new PrismaClient()
@@ -44,6 +44,7 @@ export class AiService implements OnModuleDestroy {
         where: { generationId },
         data: {
           updatedAt: new Date(),
+          status: generation_status.FAILED
         },
       })
       throw error // Re-throw the error to be caught by the caller
@@ -60,6 +61,7 @@ export class AiService implements OnModuleDestroy {
           coreModel: 'SDXL',
           createdAt: new Date(),
           updatedAt: new Date(),
+          status: generation_status.PENDING
         },
       })
 
@@ -78,6 +80,7 @@ export class AiService implements OnModuleDestroy {
             where: { generationId },
             data: {
               updatedAt: new Date(),
+              status: generation_status.FAILED
             },
           })
         }
