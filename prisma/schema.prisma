@@ -27,6 +27,7 @@ model generations {
   maxRetries      Int      @default(5)
   nextRetryAt     DateTime?
   failureReason   String?
+  locked          Boolean  @default(false)
 }
 
 enum core_models {

@@ -47,8 +47,12 @@ export class GenerationRepository {
     })
   }
 
-  //add type
-  scheduleRetry(id, retryCount, nextRetryAt, reason) {
+  async scheduleRetry(
+    id: string,
+    retryCount: number,
+    nextRetryAt: Date,
+    reason: string,
+  ) {
     return this.prisma.generations.update({
       where: { generationId: id },
       data: {
@@ -59,4 +63,41 @@ export class GenerationRepository {
       },
     })
   }
+
+  async findPendingForRetry(now: Date) {
+    return this.prisma.generations.findMany({
+      where: {
+        status: generation_status.PENDING,
+        locked: false,
+        nextRetryAt: {
+          lte: now,
+        },
+      },
+    })
+  }
+
+  async claimForProcessing(generationId: string): Promise<boolean> {
+    const result = await this.prisma.generations.updateMany({
+      where: {
+        generationId,
+        status: generation_status.PENDING,
+        locked: false,
+      },
+      data: {
+        locked: true,
+      },
+    })
+
+    return result.count === 1
+  }
+
+  async releaseLock(generationId: string): Promise<void> {
+  await this.prisma.generations.update({
+    where: { generationId },
+    data: {
+      locked: false
+    },
+  })
+}
+
 }
