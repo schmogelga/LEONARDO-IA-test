@@ -1,88 +1,31 @@
 import { Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common'
-import { generation_status, PrismaClient } from '@prisma/client'
-import axios from 'axios'
+import { PrismaClient, generation_status } from '@prisma/client'
+import { GenerationProcessor } from './generation.processor'
+import { GenerationRepository } from './generation.repository'
 
 @Injectable()
 export class AiService implements OnModuleDestroy {
-  private prisma: PrismaClient
-  private readonly mockAiUrl = 'http://localhost:3001'
+  constructor(
+    private readonly generationRepository: GenerationRepository,
+    private readonly generationProcessor: GenerationProcessor
+  ) {}
 
-  constructor() {
-    this.prisma = new PrismaClient()
-  }
-
-  async onModuleDestroy() {
-    await this.prisma.$disconnect()
-  }
-
-  private async processImageGeneration(prompt: string, generationId: string) {
-    try {
-      console.log('processImageGeneration for prompt', prompt)
-      console.log('processImageGeneration for generationId', generationId)
-      console.log(`${this.mockAiUrl}/generate`)
-      const response = await axios.post(`${this.mockAiUrl}/generate`, { prompt, generationId })
-      console.log('response in NestJS service', response)
-      return response.data
-    } catch (error) {
-      console.error('Error in processImageGeneration:', error)
-      if (error instanceof Error) {
-        console.error('Error details:', {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        })
-      }
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error details:', {
-          response: error.response?.data,
-          status: error.response?.status,
-          headers: error.response?.headers,
-        })
-      }
-      // Update the generation status to failed
-      await this.prisma.generations.update({
-        where: { generationId },
-        data: {
-          updatedAt: new Date(),
-          status: generation_status.FAILED
-        },
-      })
-      throw error // Re-throw the error to be caught by the caller
-    }
-  }
+  async onModuleDestroy() {}
 
   async generateImage(prompt: string) {
     try {
-      const generation = await this.prisma.generations.create({
-        data: {
-          prompt,
-          imageHeight: 1024,
-          imageWidth: 1024,
-          coreModel: 'SDXL',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          status: generation_status.PENDING
-        },
-      })
-
+      const generation = await this.generationRepository.create(prompt)
       const generationId = generation.generationId
+
       console.log('generationId', generationId)
 
       // Start the image generation process in the background
       // Using Promise.resolve().then() to ensure it runs in the next tick
       Promise.resolve().then(async () => {
         try {
-          await this.processImageGeneration(prompt, generationId)
+          await this.generationProcessor.process(prompt, generationId)
         } catch (error) {
           console.error('Background processing failed:', error)
-
-          await this.prisma.generations.update({
-            where: { generationId },
-            data: {
-              updatedAt: new Date(),
-              status: generation_status.FAILED
-            },
-          })
         }
       })
 
@@ -93,30 +36,19 @@ export class AiService implements OnModuleDestroy {
     }
   }
 
-   async getGeneration(generationId: string){
-  const generation = await this.prisma.generations.findUnique({
-    where: { generationId },
-    include: {
-      images: true,
-    },
-  })
+  async getGeneration(generationId: string) {
+    console.log('getting generation for generationId: ', generationId)
+    const generation = await this.generationRepository.findByGenerationId(generationId)
 
-  console.log('getting generation for generationId: ', generationId)
+    if (!generation) {
+      throw new NotFoundException('Generation not found')
+    }
 
-  if (!generation) {
-    throw new NotFoundException('Generation not found')
-  }
-
-return {
-  generationId: generation.generationId,
-  prompt: generation.prompt,
-  status: generation.status,
-  images:
-    generation.status === generation_status.COMPLETE
-      ? generation.images.map((img) => ({
-          url: img.url,
-        }))
-      : [],
+    return {
+      generationId: generation.generationId,
+      prompt: generation.prompt,
+      status: generation.status,
+      imageUrls: generation.status === generation_status.COMPLETE ? [] : null,
     }
   }
 }

@@ -22,6 +22,11 @@ model generations {
   status       generation_status?
 
   images       generation_images[]
+  
+  retryCount      Int      @default(0)
+  maxRetries      Int      @default(5)
+  nextRetryAt     DateTime?
+  failureReason   String?
 }
 
 enum core_models {
