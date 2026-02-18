@@ -1,115 +1,110 @@
 import { NotFoundException } from '@nestjs/common'
-import { AiService } from '../ai.service'
 import { generation_status } from '@prisma/client'
-import axios from 'axios'
-
-jest.mock('axios')
-const mockedAxios = axios as jest.Mocked<typeof axios>
+import { AiService } from '../ai.service'
 
 describe('AiService', () => {
   let service: AiService
 
-  const prismaMock = {
-    generations: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
-    $disconnect: jest.fn(),
+  const repositoryMock = {
+    create: jest.fn(),
+    findByGenerationId: jest.fn(),
+  }
+
+  const processorMock = {
+    process: jest.fn(),
   }
 
   beforeEach(() => {
+    service = new AiService(repositoryMock as any, processorMock as any)
 
-    service = new AiService();
-    (service as any).prisma = prismaMock
     jest.clearAllMocks()
   })
 
   describe('generateImage', () => {
-    it('should create generation with PENDING status and return generationId', async () => {
-      prismaMock.generations.create.mockResolvedValue({
-        generationId: 'gen-789',
+    it('should create generation and return generationId', async () => {
+      repositoryMock.create.mockResolvedValue({
+        generationId: 'gen-123',
       })
 
-      mockedAxios.post.mockResolvedValue({ data: {} })
-      
       const result = await service.generateImage('hello world')
 
-      expect(prismaMock.generations.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            prompt: 'hello world',
-            status: generation_status.PENDING,
-          }),
-        }),
-      )
-
-      expect(result).toEqual({ generationId: 'gen-789' })
+      expect(repositoryMock.create).toHaveBeenCalledWith('hello world')
+      expect(result).toEqual({ generationId: 'gen-123' })
     })
 
-    it('should mark generation as FAILED if background processing fails', async () => {
-      prismaMock.generations.create.mockResolvedValue({
-        generationId: 'gen-fail',
+    it('should start background processing with GenerationProcessor', async () => {
+      repositoryMock.create.mockResolvedValue({
+        generationId: 'gen-bg',
       })
 
-      mockedAxios.post.mockRejectedValue(new Error('AI error'))
+      await service.generateImage('background prompt')
 
-      await service.generateImage('fail prompt')
+      // garante execução do Promise.resolve().then()
       await new Promise(process.nextTick)
 
-      expect(prismaMock.generations.update).toHaveBeenCalledWith({
-        where: { generationId: 'gen-fail' },
-        data: expect.objectContaining({
-          status: generation_status.FAILED,
-        }),
+      expect(processorMock.process).toHaveBeenCalledWith('background prompt', 'gen-bg')
+    })
+
+    it('should not throw if background processing fails', async () => {
+      repositoryMock.create.mockResolvedValue({
+        generationId: 'gen-error',
       })
+
+      processorMock.process.mockRejectedValue(new Error('processor error'))
+
+      await expect(service.generateImage('fail prompt')).resolves.toEqual({ generationId: 'gen-error' })
+
+      await new Promise(process.nextTick)
+
+      expect(processorMock.process).toHaveBeenCalled()
+    })
+
+    it('should throw when repository.create fails', async () => {
+      repositoryMock.create.mockRejectedValue(new Error('db error'))
+
+      await expect(service.generateImage('boom')).rejects.toThrow('Failed to initiate image generation')
     })
   })
 
   describe('getGeneration', () => {
-  it('should return generation data when status is PENDING', async () => {
-    prismaMock.generations.findUnique.mockResolvedValue({
-      generationId: 'gen-123',
-      prompt: 'test prompt',
-      status: generation_status.PENDING,
-      images: [],
+    it('should return generation data when status is PENDING', async () => {
+      repositoryMock.findByGenerationId.mockResolvedValue({
+        generationId: 'gen-1',
+        prompt: 'test prompt',
+        status: generation_status.PENDING,
+      })
+
+      const result = await service.getGeneration('gen-1')
+
+      expect(result).toEqual({
+        generationId: 'gen-1',
+        prompt: 'test prompt',
+        status: generation_status.PENDING,
+        imageUrls: null,
+      })
     })
 
-    const result = await service.getGeneration('gen-123')
+    it('should return imageUrls when status is COMPLETE', async () => {
+      repositoryMock.findByGenerationId.mockResolvedValue({
+        generationId: 'gen-2',
+        prompt: 'done prompt',
+        status: generation_status.COMPLETE,
+      })
 
-    expect(result).toEqual({
-      generationId: 'gen-123',
-      prompt: 'test prompt',
-      status: generation_status.PENDING,
-      images: [],
+      const result = await service.getGeneration('gen-2')
+
+      expect(result).toEqual({
+        generationId: 'gen-2',
+        prompt: 'done prompt',
+        status: generation_status.COMPLETE,
+        imageUrls: [],
+      })
+    })
+
+    it('should throw NotFoundException when generation does not exist', async () => {
+      repositoryMock.findByGenerationId.mockResolvedValue(null)
+
+      await expect(service.getGeneration('invalid-id')).rejects.toThrow(NotFoundException)
     })
   })
-
-  it('should return images when status is COMPLETE', async () => {
-    prismaMock.generations.findUnique.mockResolvedValue({
-      generationId: 'gen-456',
-      prompt: 'done prompt',
-      status: generation_status.COMPLETE,
-      images: [],
-    })
-
-    const result = await service.getGeneration('gen-456')
-
-    expect(result).toEqual({
-      generationId: 'gen-456',
-      prompt: 'done prompt',
-      status: generation_status.COMPLETE,
-      images: [],
-    })
-  })
-
-  it('should throw NotFoundException when generation does not exist', async () => {
-    prismaMock.generations.findUnique.mockResolvedValue(null)
-
-    await expect(service.getGeneration('invalid-id')).rejects.toThrow(
-      NotFoundException,
-    )
-  })
-})
-
 })
