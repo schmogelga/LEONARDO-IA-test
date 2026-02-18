@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common'
+import { Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common'
 import { generation_status, PrismaClient } from '@prisma/client'
 import axios from 'axios'
 
@@ -90,6 +90,33 @@ export class AiService implements OnModuleDestroy {
       return { generationId }
     } catch (error) {
       throw new Error(`Failed to initiate image generation: ${error}`)
+    }
+  }
+
+   async getGeneration(generationId: string){
+  const generation = await this.prisma.generations.findUnique({
+    where: { generationId },
+    include: {
+      images: true,
+    },
+  })
+
+  console.log('getting generation for generationId: ', generationId)
+
+  if (!generation) {
+    throw new NotFoundException('Generation not found')
+  }
+
+return {
+  generationId: generation.generationId,
+  prompt: generation.prompt,
+  status: generation.status,
+  images:
+    generation.status === generation_status.COMPLETE
+      ? generation.images.map((img) => ({
+          url: img.url,
+        }))
+      : [],
     }
   }
 }
