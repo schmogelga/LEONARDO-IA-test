@@ -10,6 +10,7 @@ services/lambdas/.serverless
 services/nestjs/.build
 services/nestjs/*.tsbuildinfo
 services/nestjs/.env
+services/nestjs/.env.test
 services/nestjs/dist
 
 services/mock-ai-server/*.tsbuildinfo
