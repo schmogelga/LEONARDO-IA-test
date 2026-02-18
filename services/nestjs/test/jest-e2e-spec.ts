@@ -8,8 +8,7 @@ describe('Generation E2E', () => {
   let app: INestApplication
   let prisma: PrismaClient
 
-    const id = '550e8400-e29b-41d4-a716-446655440000'
-
+  const id = '550e8400-e29b-41d4-a716-446655440000'
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -28,51 +27,45 @@ describe('Generation E2E', () => {
     await app.close()
   })
 
-    beforeEach(async () => {
-        await prisma.generations.deleteMany()
+  beforeEach(async () => {
+    await prisma.generations.deleteMany()
+  })
+
+  it('GET /api/generation/:id → PENDING generation', async () => {
+    const generation = await prisma.generations.create({
+      data: {
+        prompt: 'test prompt',
+        imageHeight: 1024,
+        imageWidth: 1024,
+        coreModel: 'SDXL',
+        status: generation_status.PENDING,
+      },
     })
 
-it('GET /api/generation/:id → PENDING generation', async () => {
-  const generation = await prisma.generations.create({
-    data: {
+    const res = await request(app.getHttpServer()).get(`/api/generation/${generation.generationId}`).expect(200)
+
+    expect(res.body).toEqual({
+      generationId: generation.generationId,
       prompt: 'test prompt',
-      imageHeight: 1024,
-      imageWidth: 1024,
-      coreModel: 'SDXL',
       status: generation_status.PENDING,
-    },
+      images: [],
+    })
   })
 
-  const res = await request(app.getHttpServer())
-    .get(`/api/generation/${generation.generationId}`)
-    .expect(200)
+  it('GET /api/generation/:id → COMPLETE generation', async () => {
+    const generation = await prisma.generations.create({
+      data: {
+        prompt: 'completed image',
+        imageHeight: 1024,
+        imageWidth: 1024,
+        coreModel: 'SDXL',
+        status: generation_status.COMPLETE,
+      },
+    })
 
-  expect(res.body).toEqual({
-    generationId: generation.generationId,
-    prompt: 'test prompt',
-    status: generation_status.PENDING,
-    images: [],
+    const res = await request(app.getHttpServer()).get(`/api/generation/${generation.generationId}`).expect(200)
+
+    expect(res.body.images).toEqual([])
+    expect(res.body.status).toBe(generation_status.COMPLETE)
   })
-})
-
-
-it('GET /api/generation/:id → COMPLETE generation', async () => {
-  const generation = await prisma.generations.create({
-    data: {
-      prompt: 'completed image',
-      imageHeight: 1024,
-      imageWidth: 1024,
-      coreModel: 'SDXL',
-      status: generation_status.COMPLETE,
-    },
-  })
-
-  const res = await request(app.getHttpServer())
-    .get(`/api/generation/${generation.generationId}`)
-    .expect(200)
-
-  expect(res.body.images).toEqual([])
-  expect(res.body.status).toBe(generation_status.COMPLETE)
-})
-
 })

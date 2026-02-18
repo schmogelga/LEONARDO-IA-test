@@ -47,12 +47,7 @@ export class GenerationRepository {
     })
   }
 
-  async scheduleRetry(
-    id: string,
-    retryCount: number,
-    nextRetryAt: Date,
-    reason: string,
-  ) {
+  async scheduleRetry(id: string, retryCount: number, nextRetryAt: Date, reason: string) {
     return this.prisma.generations.update({
       where: { generationId: id },
       data: {
@@ -92,12 +87,11 @@ export class GenerationRepository {
   }
 
   async releaseLock(generationId: string): Promise<void> {
-  await this.prisma.generations.update({
-    where: { generationId },
-    data: {
-      locked: false
-    },
-  })
-}
-
+    await this.prisma.generations.update({
+      where: { generationId },
+      data: {
+        locked: false,
+      },
+    })
+  }
 }

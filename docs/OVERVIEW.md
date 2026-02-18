@@ -14,10 +14,10 @@ You’ve probably guessed that we have a frontend app (we do - leonardo.ai), an 
 
 Within the API team, we focus on delivering high-quality outcomes for our customers - both our internal teammates as well as the broader Leonardo community. To do that, we follow a few key practices:
 
-* We make sure we understand the work clearly before writing any code
-* We use a test-first (TDD) approach, so quality is baked in from the outset
-* We prioritise resilience and safety throughout the development process
-* We lean into over-communication so our intent is always clear, and future teammates don’t have to work too hard to get up to speed and follow along
+- We make sure we understand the work clearly before writing any code
+- We use a test-first (TDD) approach, so quality is baked in from the outset
+- We prioritise resilience and safety throughout the development process
+- We lean into over-communication so our intent is always clear, and future teammates don’t have to work too hard to get up to speed and follow along
 
 This technical challenge has been designed with those principles in mind. As you dig in, we encourage you to keep them front and center.
 
@@ -31,7 +31,7 @@ Here you'll find a basic database schema and starting migrations that support th
 
 ### -- Scripts
 
-The scripts directory is there to help set the platform up when you run ```npm run setup```. You shouldn't need to modify these files but being familiar with them might add a little more knowledge about the system to your toolbelt. 
+The scripts directory is there to help set the platform up when you run `npm run setup`. You shouldn't need to modify these files but being familiar with them might add a little more knowledge about the system to your toolbelt.
 
 ### -- Services
 

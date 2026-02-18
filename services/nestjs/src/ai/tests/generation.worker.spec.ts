@@ -87,9 +87,7 @@ describe('GenerationRetryWorker', () => {
         },
       ])
 
-      repositoryMock.claimForProcessing
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
+      repositoryMock.claimForProcessing.mockResolvedValueOnce(true).mockResolvedValueOnce(true)
 
       await worker.run()
 
@@ -117,9 +115,7 @@ describe('GenerationRetryWorker', () => {
         },
       ])
 
-      repositoryMock.claimForProcessing
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(true)
+      repositoryMock.claimForProcessing.mockResolvedValueOnce(false).mockResolvedValueOnce(true)
 
       await worker.run()
 

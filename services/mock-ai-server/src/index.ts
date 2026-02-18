@@ -2,7 +2,6 @@ import express from 'express'
 import axios from 'axios'
 import crypto from 'crypto'
 
-
 const app = express()
 app.use(express.json())
 
@@ -22,9 +21,8 @@ app.post('/generate', async (req, res) => {
 
     // Trigger Lambda callback
     try {
-
-    const uniqueId = crypto.randomUUID()
-    const mockUrl = `https://mock-storage.local/images/${uniqueId}.png`
+      const uniqueId = crypto.randomUUID()
+      const mockUrl = `https://mock-storage.local/images/${uniqueId}.png`
 
       await axios.post(LAMBDA_CALLBACK_URL, {
         prompt,

@@ -32,11 +32,11 @@ export class GenerationRetryWorker {
         })
       )
 
-        try {
-            await this.generationProcessor.process(gen.prompt, gen.generationId)
-        } finally {
-            await this.generationRepository.releaseLock(gen.generationId)
-        }    
+      try {
+        await this.generationProcessor.process(gen.prompt, gen.generationId)
+      } finally {
+        await this.generationRepository.releaseLock(gen.generationId)
+      }
     }
   }
 }

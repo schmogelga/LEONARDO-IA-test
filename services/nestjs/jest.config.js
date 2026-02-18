@@ -3,5 +3,5 @@ export default {
   testEnvironment: 'node',
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
-  moduleFileExtensions: ['ts', 'js', 'json']
+  moduleFileExtensions: ['ts', 'js', 'json'],
 }

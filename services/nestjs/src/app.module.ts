@@ -9,7 +9,7 @@ import { GenerationRetryWorker } from './ai/generation.worker'
 
 @Module({
   imports: [PrismaModule, ScheduleModule.forRoot()],
-    controllers: [AiController],
+  controllers: [AiController],
   providers: [AiService, GenerationProcessor, GenerationRepository, GenerationRetryWorker],
 })
 export class AppModule {}

@@ -34,7 +34,7 @@ describe('GenerationProcessor', () => {
 
       await processor.process('test prompt', 'gen-1')
 
-      let basUrl = process.env.GENERATION_AI_BASE_URL || 'http://localhost:3001';
+      let basUrl = process.env.GENERATION_AI_BASE_URL || 'http://localhost:3001'
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         `${basUrl}/generate`,
