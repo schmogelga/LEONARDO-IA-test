@@ -25,6 +25,13 @@ export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
       },
     })
 
+    await prisma.generation_images.create({
+      data: {
+        generationId: updatedGeneration.id,
+        url: data.url,
+      },
+    })
+
     return {
       statusCode: 200,
       body: JSON.stringify({

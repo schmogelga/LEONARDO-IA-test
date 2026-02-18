@@ -20,6 +20,8 @@ model generations {
   imageWidth   Int
   prompt       String      @db.VarChar(1500)
   status       generation_status?
+
+  images       generation_images[]
 }
 
 enum core_models {
@@ -31,4 +33,15 @@ enum generation_status {
   PENDING
   FAILED
   COMPLETE
+}
+
+model generation_images {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  generationId String   @db.Uuid
+  url          String   @db.Text
+  createdAt    DateTime @default(now())
+
+  generation   generations @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  @@index([generationId])
 }
