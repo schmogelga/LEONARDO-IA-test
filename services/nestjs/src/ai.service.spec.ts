@@ -65,4 +65,51 @@ describe('AiService', () => {
       })
     })
   })
+
+  describe('getGeneration', () => {
+  it('should return generation data when status is PENDING', async () => {
+    prismaMock.generations.findUnique.mockResolvedValue({
+      generationId: 'gen-123',
+      prompt: 'test prompt',
+      status: generation_status.PENDING,
+      images: [],
+    })
+
+    const result = await service.getGeneration('gen-123')
+
+    expect(result).toEqual({
+      generationId: 'gen-123',
+      prompt: 'test prompt',
+      status: generation_status.PENDING,
+      images: [],
+    })
+  })
+
+  it('should return images when status is COMPLETE', async () => {
+    prismaMock.generations.findUnique.mockResolvedValue({
+      generationId: 'gen-456',
+      prompt: 'done prompt',
+      status: generation_status.COMPLETE,
+      images: [],
+    })
+
+    const result = await service.getGeneration('gen-456')
+
+    expect(result).toEqual({
+      generationId: 'gen-456',
+      prompt: 'done prompt',
+      status: generation_status.COMPLETE,
+      images: [],
+    })
+  })
+
+  it('should throw NotFoundException when generation does not exist', async () => {
+    prismaMock.generations.findUnique.mockResolvedValue(null)
+
+    await expect(service.getGeneration('invalid-id')).rejects.toThrow(
+      NotFoundException,
+    )
+  })
+})
+
 })
