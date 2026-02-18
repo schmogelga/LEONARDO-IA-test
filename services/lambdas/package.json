@@ -5,7 +5,7 @@
   "scripts": {
     "deploy": "npx serverless deploy --stage local",
     "start:offline": "npx serverless offline start",
-    "prisma:copy-from-shared": "mkdir -p ./prisma && cp ../../prisma/schema.prisma ./prisma/schema.prisma",
+    "prisma:copy-from-shared": "mkdir prisma && copy ..\\..\\prisma\\schema.prisma prisma\\schema.prisma",
     "prisma:generate": "npm run prisma:copy-from-shared && npx prisma generate"
   },
   "dependencies": {
