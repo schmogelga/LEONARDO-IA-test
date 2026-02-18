@@ -7,6 +7,9 @@ app.use(express.json())
 
 const LAMBDA_CALLBACK_URL = process.env.LAMBDA_CALLBACK_URL || 'http://localhost:3004/dev/callback'
 
+const randomDelay = (min: number, max: number) =>
+  new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * (max - min + 1)) + min))
+
 // Helper function to create a delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -17,7 +20,7 @@ app.post('/generate', async (req, res) => {
     console.log('Processing generation for prompt: ', prompt)
 
     // Add a 8-seconds delay before calling the callback
-    await delay(8000) // FIXME: Change to be random between 4-8 seconds
+    await randomDelay(4000, 8000)
 
     // Trigger Lambda callback
     try {
