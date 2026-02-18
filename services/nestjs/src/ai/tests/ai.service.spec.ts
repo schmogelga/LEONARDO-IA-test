@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common'
-import { AiService } from './ai.service'
+import { AiService } from '../ai.service'
 import { generation_status } from '@prisma/client'
 import axios from 'axios'
 
