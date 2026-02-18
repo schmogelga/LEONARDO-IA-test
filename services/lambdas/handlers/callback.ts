@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import { PrismaClient } from '@prisma/client'
+import { generation_status, PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -21,6 +21,7 @@ export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
       },
       data: {
         updatedAt: new Date(),
+        status: generation_status.COMPLETE
       },
     })
 
