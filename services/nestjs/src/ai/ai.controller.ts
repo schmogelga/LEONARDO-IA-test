@@ -28,12 +28,10 @@ export class AiController {
     description: 'Generation identifier',
     required: true,
   })
-  @ApiResponse({status: 200, description: 'Generation data returned successfully', type: GenerationResponseDto})
-  @ApiResponse({status: 404, description: 'Generation not found',})
-  @ApiResponse({status: 500, description: 'Internal server error',})
-  async getGeneration(
-    @Param('generationId', ParseUUIDPipe) generationId: string,
-  ) {
+  @ApiResponse({ status: 200, description: 'Generation data returned successfully', type: GenerationResponseDto })
+  @ApiResponse({ status: 404, description: 'Generation not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async getGeneration(@Param('generationId', ParseUUIDPipe) generationId: string) {
     return this.aiService.getGeneration(generationId)
   }
 }
